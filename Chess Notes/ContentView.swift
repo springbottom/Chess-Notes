@@ -22,44 +22,17 @@ let default_board : [[String]] = [
 
 struct ContentView: View {
     
-    //@EnvironmentObject var masterkey : MasterKey// = MasterKey()
-    //@Binding var keycode : Int
-    
-    
     @State var frames = [CGRect](repeating: .zero, count:64)
     @State var notes: String = ""
-    @State var board_history : [[[String]]] = [default_board]
+    //@State var board_history : [[[String]]] = [default_board]
+    @State var board_history: [BoardState] = [BoardState(board:default_board,
+                                                         wkc:true, wqc:true,
+                                                         bkc:true, bqc:true)]
     @State var moves: [String] = [""]
     
-    //@State var current_index = 0 //if we press left/right then we are moving between boards
-    //@Binding var current_index : Int
-    //@Binding var game_length: Int
-    //@State var current_index : Int
-    
-    //var piece_names : [[String]] = board_history[current_index]//default_board
-    //let piece_names = board_history[current_index]
-    
-    //YOU GOT TO BE BIG BRAIIIIIIN
-    //View is a value type; not a reference type
-    //pass the current_index in from above
-    //transcend your medieval thinking
     @ObservedObject var masterkey: MasterKey
     @ObservedObject var userData: UserData
     @Environment(\.managedObjectContext) var managedObjectContext
-    
-    
-    
-//    @State var keyBroadcast: KeyBroadcast = KeyBroadcast(){
-//        didSet{
-//            print("I felt that?")
-//        }
-//    }
-//
-//    @EnvironmentObject var master_key: MasterKey{
-//        didSet{
-//            print("I felt that!")
-//        }
-//    }
     
     
 //    func button_pressed(keycode: Int){
@@ -88,23 +61,76 @@ struct ContentView: View {
     func released(location: CGPoint, index_x: Int, index_y: Int, name: String) -> Void{
         if let match = frames.firstIndex(where: {$0.contains(location)}){
             //print("board_history.count",board_history.count)
-            if legal(board:board_history[masterkey.current_index],x1:index_x,y1:index_y,x2:match/8,y2:match%8) && self.masterkey.current_index == self.board_history.count-1{
+            //if legal(board:board_history[masterkey.current_index],x1:index_x,y1:index_y,x2:match/8,y2:match%8) && self.masterkey.current_index == self.board_history.count-1{
+            if board_history[masterkey.current_index].legal(x1:index_x,y1:index_y,x2:match/8,y2:match%8) && self.masterkey.current_index == self.board_history.count-1{
+                
+                let p1 = board_history[masterkey.current_index].board[index_x][index_y]
+                
                 //record which pieces got moved?
                 let move : String = cartesian_to_standard(x1:index_x,y1:index_y,
                                       x2:match/8,y2:match%8,
-                                      p1:board_history[masterkey.current_index][index_x][index_y],
-                                      p2:board_history[masterkey.current_index][match/8][match%8])
+                                      p1:p1,
+                                      p2:board_history[masterkey.current_index].board[match/8][match%8])
                 moves.append(move)
                 
-                print(masterkey.current_index)
+                
+                
+                
+                //print(masterkey.current_index)
                 masterkey.current_index = masterkey.current_index + 1
                 masterkey.game_length = masterkey.game_length + 1
-                print(masterkey.current_index,"how is this not incrementing")
+                //print(masterkey.current_index,"how is this not incrementing")
                 //move the pieces
-                board_history.append(copy_board(board: board_history[masterkey.current_index-1]))
-                board_history[masterkey.current_index][match/8][match%8] = board_history[masterkey.current_index][index_x][index_y]
-                board_history[masterkey.current_index][index_x][index_y] = "BLANK"
+                //board_history.append(copy_board(board: board_history[masterkey.current_index-1]))
+                board_history.append(board_history[masterkey.current_index-1].copy_board())
+                board_history[masterkey.current_index].board[match/8][match%8] = board_history[masterkey.current_index].board[index_x][index_y]
+                board_history[masterkey.current_index].board[index_x][index_y] = "BLANK"
                 
+                //now, if we were castling we need to move the rook as well..
+                if (p1 == "WK") && abs(index_x - match/8) == 2{
+                    board_history[masterkey.current_index].board[(index_x+match/8)/2][index_y] = "WR"
+                    if match/8 > index_x{
+                        board_history[masterkey.current_index].board[7][7] = "BLANK"
+                    }
+                    else{
+                        board_history[masterkey.current_index].board[0][7] = "BLANK"
+                    }
+                }
+                if (p1 == "BK") && abs(index_x - match/8) == 2{
+                    board_history[masterkey.current_index].board[(index_x+match/8)/2][index_y] = "BR"
+                    if match/8 > index_x{
+                        board_history[masterkey.current_index].board[7][0] = "BLANK"
+                    }
+                    else{
+                        board_history[masterkey.current_index].board[0][0] = "BLANK"
+                    }
+                }
+                
+                //Now, if we have moved a king/rook, we need to update wkc,wqc,...
+                if (p1 == "WK"){
+                    board_history[masterkey.current_index].wkc = false
+                    board_history[masterkey.current_index].wqc = false
+                }
+                if (p1 == "BK"){
+                    board_history[masterkey.current_index].bkc = false
+                    board_history[masterkey.current_index].bqc = false
+                }
+                if (p1 == "WR" && index_y == 7){
+                    if (index_x == 0){
+                        board_history[masterkey.current_index].wqc = false
+                    }
+                    if (index_x == 7){
+                        board_history[masterkey.current_index].wkc = false
+                    }
+                }
+                if (p1 == "BR" && index_y == 0){
+                    if (index_x == 0){
+                        board_history[masterkey.current_index].bqc = false
+                    }
+                    if (index_x == 7){
+                        board_history[masterkey.current_index].bkc = false
+                    }
+                }
                 
             }
         }
@@ -125,7 +151,7 @@ struct ContentView: View {
                     //Text("?")
                     ForEach(0..<8){x in
                         ForEach(0..<8){y in
-                            Piece(name:self.board_history[self.masterkey.current_index][x][y],
+                            Piece(name:self.board_history[self.masterkey.current_index].board[x][y],
                                   released: self.released,
                                   index_x: x,
                                   index_y: y)
@@ -138,7 +164,8 @@ struct ContentView: View {
                     Text("Analysis Pane")
                     HStack{
                         Button(action: {
-                            self.board_history[self.masterkey.current_index] = default_board
+                            //Actually need to reset everything?
+                            //self.board_history[self.masterkey.current_index] = default_board
                         }){
                             Text("Reset Board")
                         }
