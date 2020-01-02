@@ -28,6 +28,18 @@ class BoardState{
         self.bkc = bkc; self.bqc = bqc
     }
     
+    //transform the board to a string
+    func to_string() -> String{
+        /*
+         I guess it makes sense to do
+         x,x,x,x,x,x,x,x\nx,x,...\n1010
+         as the unique string associated to a boardstate
+         */
+        var to_return = self.board.joined().joined(separator:",")
+        to_return = to_return + String(wkc) + String(wqc) + String(bkc) + String(bqc)
+        return to_return
+    }
+    
     //copy a board?! this returns a ccopy of the CLASS...
     func copy_board() -> BoardState{
         //var to_return = [[String]](repeating: [String](repeating:"",count:8), count:8)
@@ -303,24 +315,26 @@ class BoardState{
  */
 
 ////Convert to standard notation
-//func cartesian_to_standard (x1: Int, y1: Int, x2: Int, y2:Int, p1:String, p2:String) -> String{
-//    var to_return : String = ((p1 == "WP" || p1 == "BP") ? "" : String(p1.last!))
-//    let letters   = ["a","b","c","d","e","f","g","h"]
-//    //let r_letters = ["h","g","f","e","d","c","b","a"]
-//
-//    to_return = to_return + ((p2 == "BLANK") ? "" : "x") + letters[x2] + String(8-y2)
-//
-//    if (p1.last! == "K") && (abs(x2-x1) == 2){
-//        if x2 > x1{
-//            return "O-O"
-//        }
-//        else{
-//            return "O-O-O"
-//        }
-//    }
-//
-//    return to_return
-//}
+func cartesian_to_standard (x1: Int, y1: Int, x2: Int, y2:Int, p1:String, p2:String) -> String{
+    var to_return : String = ((p1 == "WP" || p1 == "BP") ? "" : String(p1.last!))
+    let letters   = ["a","b","c","d","e","f","g","h"]
+    //let r_letters = ["h","g","f","e","d","c","b","a"]
+
+    to_return = to_return + ((p2 == "BLANK") ? "" : "x") + letters[x2] + String(8-y2)
+
+    if (p1.last! == "K") && (abs(x2-x1) == 2){
+        if x2 > x1{
+            return "O-O"
+        }
+        else{
+            return "O-O-O"
+        }
+    }
+
+    return to_return
+}
+
+
 //
 ///*
 // Board-specific functions belong to the class in reality?

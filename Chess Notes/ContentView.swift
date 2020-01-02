@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 let default_board : [[String]] = [
     ["BR","BP","BLANK","BLANK","BLANK","BLANK","WP","WR"],
@@ -22,9 +23,11 @@ let default_board : [[String]] = [
 
 struct ContentView: View {
     
+    @FetchRequest(entity:Note.entity(), sortDescriptors:[]) var stored_notes: FetchedResults<Note>
+    
+    
     @State var frames = [CGRect](repeating: .zero, count:64)
     @State var notes: String = ""
-    //@State var board_history : [[[String]]] = [default_board]
     @State var board_history: [BoardState] = [BoardState(board:default_board,
                                                          wkc:true, wqc:true,
                                                          bkc:true, bqc:true)]
@@ -32,7 +35,7 @@ struct ContentView: View {
     
     @ObservedObject var masterkey: MasterKey
     @ObservedObject var userData: UserData
-    @Environment(\.managedObjectContext) var managedObjectContext
+    @Environment(\.managedObjectContext) var moc
     
     
 //    func button_pressed(keycode: Int){
@@ -132,6 +135,10 @@ struct ContentView: View {
                     }
                 }
                 
+                
+                //Now, if we have notes in the bank, we need to load them
+                userData.text = stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}!.note!
+                
             }
         }
         return
@@ -202,7 +209,22 @@ struct ContentView: View {
                         .border(Color.blue)
                    
                     VStack{
-                        Text("Notes")
+                        HStack{
+                            Text("Notes")
+                            Button(action:{
+                                let new_note = Note(context : self.moc)
+                                new_note.board_state = self.board_history[self.masterkey.current_index].to_string()
+                                new_note.note = self.userData.text
+                                do{
+                                    try self.moc.save()
+                                } catch {
+                                    print("ruh roh",error)
+                                }
+                                
+                            }){
+                                Text("Save Notes")
+                            }
+                        }
                         MultilineTextView(text: $userData.text)
                     }
                     .frame(width:CGFloat(200),height:CGFloat(200))

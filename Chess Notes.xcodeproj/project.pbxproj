@@ -15,6 +15,7 @@
 		CD055F7923BD234900B36BA2 /* MultilineTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD055F7823BD234900B36BA2 /* MultilineTextView.swift */; };
 		CD055F7B23BD239400B36BA2 /* Piece.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD055F7A23BD239400B36BA2 /* Piece.swift */; };
 		CD055F7D23BD243500B36BA2 /* Chess_backend.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD055F7C23BD243500B36BA2 /* Chess_backend.swift */; };
+		CD055F8023BD6CD700B36BA2 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CD055F7E23BD6CD700B36BA2 /* Model.xcdatamodeld */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,7 @@
 		CD055F7823BD234900B36BA2 /* MultilineTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultilineTextView.swift; sourceTree = "<group>"; };
 		CD055F7A23BD239400B36BA2 /* Piece.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piece.swift; sourceTree = "<group>"; };
 		CD055F7C23BD243500B36BA2 /* Chess_backend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chess_backend.swift; sourceTree = "<group>"; };
+		CD055F7F23BD6CD700B36BA2 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +68,7 @@
 				CD055F6523BD231000B36BA2 /* AppDelegate.swift */,
 				CD055F6723BD231000B36BA2 /* ContentView.swift */,
 				CD055F7C23BD243500B36BA2 /* Chess_backend.swift */,
+				CD055F7E23BD6CD700B36BA2 /* Model.xcdatamodeld */,
 				CD055F6923BD231800B36BA2 /* Assets.xcassets */,
 				CD055F6E23BD231800B36BA2 /* Main.storyboard */,
 				CD055F7123BD231800B36BA2 /* Info.plist */,
@@ -159,6 +162,7 @@
 				CD055F7923BD234900B36BA2 /* MultilineTextView.swift in Sources */,
 				CD055F7B23BD239400B36BA2 /* Piece.swift in Sources */,
 				CD055F6623BD231000B36BA2 /* AppDelegate.swift in Sources */,
+				CD055F8023BD6CD700B36BA2 /* Model.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -353,6 +357,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		CD055F7E23BD6CD700B36BA2 /* Model.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				CD055F7F23BD6CD700B36BA2 /* Model.xcdatamodel */,
+			);
+			currentVersion = CD055F7F23BD6CD700B36BA2 /* Model.xcdatamodel */;
+			path = Model.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = CD055F5A23BD231000B36BA2 /* Project object */;
 }
