@@ -17,18 +17,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     
     //this variable is for... the text containing the notes I think?
-    var userData = UserData(text:"")
-    
+    //var userData = UserData(text:"")
     
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "CoreDataModelNameHere")
+        let container = NSPersistentContainer(name: "Model")
         container.loadPersistentStores { description, error in
             if let error = error {
+                print("not sure - perhaps this is an error?")
                 // Add your error UI here
             }
         }
         return container
     }()
+    
+    
     
     func saveContext () {
         let context = persistentContainer.viewContext
@@ -45,9 +47,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
-        
-        let contentView = ContentView(masterkey:masterkey,
-                                      userData: UserData(text:""))
+        let context = (NSApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let contentView = ContentView(masterkey:masterkey).environment(\.managedObjectContext,context)//,
+                                      //userData: UserData(text:"")).environment(\.managedObjectContext,context)
         window = EditorWindow(masterkey:masterkey)
         window.center()
         window.setFrameAutosaveName("Main Window")

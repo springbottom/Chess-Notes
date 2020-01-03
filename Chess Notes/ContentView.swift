@@ -34,7 +34,10 @@ struct ContentView: View {
     @State var moves: [String] = [""]
     
     @ObservedObject var masterkey: MasterKey
-    @ObservedObject var userData: UserData
+    
+    //@ObservedObject var userData: UserData
+    @State var note_text = ""
+    
     @Environment(\.managedObjectContext) var moc
     
     
@@ -76,15 +79,9 @@ struct ContentView: View {
                                       p2:board_history[masterkey.current_index].board[match/8][match%8])
                 moves.append(move)
                 
-                
-                
-                
-                //print(masterkey.current_index)
                 masterkey.current_index = masterkey.current_index + 1
                 masterkey.game_length = masterkey.game_length + 1
-                //print(masterkey.current_index,"how is this not incrementing")
-                //move the pieces
-                //board_history.append(copy_board(board: board_history[masterkey.current_index-1]))
+
                 board_history.append(board_history[masterkey.current_index-1].copy_board())
                 board_history[masterkey.current_index].board[match/8][match%8] = board_history[masterkey.current_index].board[index_x][index_y]
                 board_history[masterkey.current_index].board[index_x][index_y] = "BLANK"
@@ -137,7 +134,8 @@ struct ContentView: View {
                 
                 
                 //Now, if we have notes in the bank, we need to load them
-                userData.text = stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}!.note!
+                //userData.text = stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}?.note ?? ""
+                note_text = stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}?.note ?? ""
                 
             }
         }
@@ -176,12 +174,27 @@ struct ContentView: View {
                         }){
                             Text("Reset Board")
                         }
-                        Button(action: {
-                            print("debug says ",self.masterkey.current_index,self.masterkey.game_length)
-                        }){
-                            Text("Debug Button")
-                        }
                     }
+                    
+                    VStack{
+                        Text("Debug Region")
+                        Button(action: {
+                            //print("debug says ",self.masterkey.current_index,self.masterkey.game_length)
+                            //print("What is in userdata?" + self.userData.text)
+                            //self.userData.text = "Hello! This is debug speaking"
+                            //print(self.userData.text)
+                        }){
+                            //VStack{
+                                Text("Debug Button")
+                            //    Text(stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}?.note ?? "")
+                            //}
+                        }
+                        Text("In memory:" + (stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}?.note ?? ""))
+                        Text("In textbox?:" + self.note_text)//self.userData.text)
+                        
+                    }
+                    
+                    
                     VStack{
                         Text("Move List")
                         Text(self.moves.joined(separator:" "))
@@ -214,8 +227,14 @@ struct ContentView: View {
                             Button(action:{
                                 let new_note = Note(context : self.moc)
                                 new_note.board_state = self.board_history[self.masterkey.current_index].to_string()
-                                new_note.note = self.userData.text
+                                new_note.note = self.note_text//self.userData.text
                                 do{
+                                    print("Saving note")
+                                    print(new_note.board_state)
+                                    print(self.note_text)
+                                    print(new_note.note)
+                                    //print(self.userData.text)
+                                    //print(new_note.note)
                                     try self.moc.save()
                                 } catch {
                                     print("ruh roh",error)
@@ -225,7 +244,11 @@ struct ContentView: View {
                                 Text("Save Notes")
                             }
                         }
-                        MultilineTextView(text: $userData.text)
+                        VStack{
+                            //MultilineTextView(text: $userData.text)
+                            //TextView(text: $note_text)//$userData.text)
+                            EditorTextView(text: $note_text)
+                        }
                     }
                     .frame(width:CGFloat(200),height:CGFloat(200))
                         .border(Color.blue)
