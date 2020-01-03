@@ -145,10 +145,51 @@ struct ContentView: View {
 
     var body: some View {
         VStack {
-            Text("Chess Notes alpha v0.1")
-                .font(.title)
-            Text("Made by me")
+            //Text("Chess Notes alpha v0.1")
+            //    .font(.title)
+            //Text("Made by me")
             HStack{
+                
+                
+                VStack{
+                    HStack{
+                        Text("Notes").font(.system(size: 16))
+                        Spacer()
+                        Button(action:{
+                            let new_note = Note(context : self.moc)
+                            new_note.board_state = self.board_history[self.masterkey.current_index].to_string()
+                            new_note.note = self.note_text//self.userData.text
+                            do{
+                                print("Saving note")
+                                print(new_note.board_state)
+                                //print(self.note_text)
+                                print(new_note.note)
+                                //print(self.userData.text)
+                                //print(new_note.note)
+                                try self.moc.save()
+                            } catch {
+                                print("ruh roh",error)
+                            }
+                            
+                            print("Has it saved?")
+                            print((self.stored_notes.first{$0.board_state == self.board_history[self.masterkey.current_index].to_string()}?.note ?? ""))
+                            //This print line seems to... fix things... which makes no sense to me but that's ok!
+                            
+                        }){
+                            Text("Save Notes")
+                        }
+                    }
+                    VStack{
+                        //MultilineTextView(text: $userData.text)
+                        //TextView(text: $note_text)//$userData.text)
+                        EditorTextView(text: $note_text)
+                    }
+                }
+                .frame(width:CGFloat(300),height:CGFloat(600))
+                    //.border(Color.blue)
+                
+                
+                
                 ZStack{
                     Board(frames: self.$frames)
                         .frame(width: CGFloat(600), height: CGFloat(600))
@@ -189,8 +230,8 @@ struct ContentView: View {
                             //    Text(stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}?.note ?? "")
                             //}
                         }
-                        Text("In memory:" + (stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}?.note ?? ""))
-                        Text("In textbox?:" + self.note_text)//self.userData.text)
+                        //Text("In memory:" + (stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}?.note ?? ""))
+                        //Text("In textbox?:" + self.note_text)//self.userData.text)
                         
                     }
                     
@@ -219,42 +260,6 @@ struct ContentView: View {
                         .border(Color.blue)
                     Text("Next Moves")
                         .frame(width: 200,height:100,alignment :.topLeading)
-                        .border(Color.blue)
-                   
-                    VStack{
-                        HStack{
-                            Text("Notes")
-                            Button(action:{
-                                let new_note = Note(context : self.moc)
-                                new_note.board_state = self.board_history[self.masterkey.current_index].to_string()
-                                new_note.note = self.note_text//self.userData.text
-                                do{
-                                    print("Saving note")
-                                    print(new_note.board_state)
-                                    //print(self.note_text)
-                                    print(new_note.note)
-                                    //print(self.userData.text)
-                                    //print(new_note.note)
-                                    try self.moc.save()
-                                } catch {
-                                    print("ruh roh",error)
-                                }
-                                
-                                print("Has it saved?")
-                                print((self.stored_notes.first{$0.board_state == self.board_history[self.masterkey.current_index].to_string()}?.note ?? ""))
-                                //This print line seems to... fix things... which makes no sense to me but that's ok!
-                                
-                            }){
-                                Text("Save Notes")
-                            }
-                        }
-                        VStack{
-                            //MultilineTextView(text: $userData.text)
-                            //TextView(text: $note_text)//$userData.text)
-                            EditorTextView(text: $note_text)
-                        }
-                    }
-                    .frame(width:CGFloat(200),height:CGFloat(200))
                         .border(Color.blue)
                         
                 }

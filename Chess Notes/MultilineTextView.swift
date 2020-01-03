@@ -233,7 +233,7 @@ final class CustomTextView: NSView {
     }()
     
     // MARK: - Init
-    init(text: String, isEditable: Bool = true, font: NSFont = NSFont.systemFont(ofSize: 12, weight: .regular)) {
+    init(text: String, isEditable: Bool = true, font: NSFont = NSFont.systemFont(ofSize: 16, weight: .regular)) {
         self.font       = font
         self.isEditable = isEditable
         self.text       = text
