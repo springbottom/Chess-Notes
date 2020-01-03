@@ -231,7 +231,7 @@ struct ContentView: View {
                                 do{
                                     print("Saving note")
                                     print(new_note.board_state)
-                                    print(self.note_text)
+                                    //print(self.note_text)
                                     print(new_note.note)
                                     //print(self.userData.text)
                                     //print(new_note.note)
@@ -239,6 +239,10 @@ struct ContentView: View {
                                 } catch {
                                     print("ruh roh",error)
                                 }
+                                
+                                print("Has it saved?")
+                                print((self.stored_notes.first{$0.board_state == self.board_history[self.masterkey.current_index].to_string()}?.note ?? ""))
+                                //This print line seems to... fix things... which makes no sense to me but that's ok!
                                 
                             }){
                                 Text("Save Notes")
