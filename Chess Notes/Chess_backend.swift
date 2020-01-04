@@ -17,18 +17,92 @@ import Foundation
  */
 
 class BoardState{
-    var board : [[String]]
-    var wkc,wqc,bkc,bqc : Bool //white/black king/queenside castling
+    var board : [[String]] //The only thing that is necessary is the board
+    var wkc,wqc,bkc,bqc : Bool? //white/black king/queenside castling
+    var to_move : String?
+    var hmc : Int? //Half-move clock - how many moves have been made without any pawn moves or captures
+    var fmc : Int? //Full-move clock, 1e4 1e5 2Nc3 that kind of stuff
+    var en_passant: String?
     
     init(board : [[String]],
-         wkc : Bool, wqc : Bool,
-         bkc : Bool, bqc : Bool){
+         wkc : Bool?, wqc : Bool?,
+         bkc : Bool?, bqc : Bool?,
+         to_move : String?,
+         hmc: Int?, fmc:Int?,
+         en_passant: String?
+         ){
+        
         self.board = board
-        self.wkc = wkc; self.wqc = wqc
-        self.bkc = bkc; self.bqc = bqc
+        self.wkc = wkc; self.wqc = wqc //white can castle, king or queen side
+        self.bkc = bkc; self.bqc = bqc //black can castle, king or queen side
+        self.to_move = to_move//"w" or "b", describes whose turn it is to move.
+        self.hmc = hmc
+        self.fmc = fmc
+        self.en_passant = en_passant
     }
     
-    //transform the board to a string
+    //transform the board into its FEN - which we should use rather than my other janky thing..
+    func to_FEN() -> String{
+        var to_return = ""
+        var blank_count = 0
+        for y in 0...7{
+            for x in 0...7{
+                if self.board[x][y] == "BLANK"{
+                    blank_count = blank_count + 1
+                }
+                else{
+                    if blank_count != 0{
+                        to_return = to_return + String(blank_count)
+                        blank_count = 0
+                    }
+                    if self.board[x][y].first! == "W"{
+                        to_return = to_return + String(self.board[x][y].last!)
+                    }
+                    else{
+                        to_return = to_return + String(self.board[x][y].lowercased())
+                    }
+                }
+            }
+            if blank_count != 0{
+                to_return = to_return + String(blank_count)
+                blank_count = 0
+            }
+            if y < 7{
+                to_return = to_return + "/"
+            }
+            else{
+                to_return = to_return + " "
+            }
+        }
+        to_return = to_return + self.to_move! + " "
+        if !self.wkc! && !self.wqc! && !self.bkc! && !self.bqc!{
+            to_return = to_return + "-" + " "
+        }
+        else{
+            if self.wkc!{
+                to_return = to_return + "K"
+            }
+            if self.wqc!{
+                to_return = to_return + "Q"
+            }
+            if self.bkc!{
+                to_return = to_return + "k"
+            }
+            if self.bqc!{
+                to_return = to_return + "q"
+            }
+            to_return = to_return + " "
+        }
+        
+        to_return = to_return + (self.en_passant ?? "-") + " "
+        to_return = to_return + self.hmc! + " " + self.fmc!
+        
+        //var to_return = self.board.joined(separator:[","])
+        return to_return
+    }
+    
+    
+    //DEPRECATED - transform the board to a string
     func to_string() -> String{
         /*
          I guess it makes sense to do
