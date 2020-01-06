@@ -51,7 +51,7 @@ class BoardState{
                         to_return = to_return + String(self.board[x][y].last!)
                     }
                     else{
-                        to_return = to_return + String(self.board[x][y].lowercased())
+                        to_return = to_return + String(self.board[x][y].lowercased().last!)
                     }
                 }
             }
@@ -92,18 +92,6 @@ class BoardState{
         //var to_return = self.board.joined(separator:[","])
         return to_return
     }
-    
-    //DEPRECATED - transform the board to a string
-//    func to_string() -> String{
-//        /*
-//         I guess it makes sense to do
-//         x,x,x,x,x,x,x,x\nx,x,...\n1010
-//         as the unique string associated to a boardstate
-//         */
-//        var to_return = self.board.joined().joined(separator:",")
-//        to_return = to_return + String(wkc!) + String(wqc!) + String(bkc!) + String(bqc!)
-//        return to_return
-//    }
     
     //copy a board?! this returns a ccopy of the CLASS...
     func copy_board() -> BoardState{
@@ -237,140 +225,7 @@ class BoardState{
         //print("no hooks")
         return false
     }
-    
-//    //DEPRECATED - checks if move is legal
-//    func legal(x1: Int, y1: Int, x2: Int, y2:Int) -> Bool {
-//        //Very naive legal move checking. So what we can do is
-//        //first check whether the move is able to be made by the piece being moved
-//
-//        let p = self.board[x1][y1]
-//
-//        if p == "BLANK"{
-//            return false
-//        }
-//
-//        let my_color = p[p.startIndex]
-//        let my_piecetype = p[p.index(before : p.endIndex)]
-//        let my_direction = (my_color == "W") ? -1 : 1
-//
-//        if self.board[x2][y2][self.board[x2][y2].startIndex] == my_color && self.board[x2][y2] != "BLANK"{
-//            return false
-//        }
-//
-//        if x1 == x2 && y1 == y2{
-//            return false
-//        }
-//        if my_piecetype == "P"{
-//            var good = 0
-//            if x1 == x2 && y2 - y1 == my_direction && self.board[x2][y2] == "BLANK"{
-//                good = 1
-//            }
-//            if abs(x1 - x2) == 1 && y2 - y1 == my_direction && self.board[x2][y2] != "BLANK"{
-//                good = 1
-//            }
-//            if x1 == x2 && y2 - y1 == my_direction*2 && board[x1][y1+my_direction] == "BLANK" &&
-//                board[x1][y2] == "BLANK" && y1 == (7 - 5*my_direction)/2{
-//                good = 1
-//            }
-//            //EN PASSANT,
-//            if good == 0{
-//                return false
-//            }
-//        }
-//
-//        //checks if it's in a line and blank
-//        if my_piecetype == "R" || my_piecetype == "B" || my_piecetype == "Q"{
-//            print("check blank line")
-//            if !self.empty_line(x1:x1,y1:y1,x2:x2,y2:y2){
-//                return false
-//            }
-//        }
-//
-//        //check the line is going the right way
-//        if my_piecetype == "B"{
-//            if abs(x1-x2) == 0 || abs(y1-y2) == 0{
-//                return false
-//            }
-//        }
-//        if my_piecetype == "R"{
-//            if x1-y1 == x2-y2 || x1+y1 == x2+y2{
-//                return false
-//            }
-//        }
-//
-//        //other pieces
-//        if my_piecetype == "N"{
-//            if abs(x1-x2)+abs(y1-y2) == 3{
-//                if abs(x1-x2) == 3 || abs(y1-y2) == 3{
-//                    return false
-//                }
-//            }
-//            else{
-//                return false
-//            }
-//        }
-//        if my_piecetype == "K"{
-//            if abs(x1-x2)+abs(y1-y2) > 2{
-//                return false
-//            }
-//            if abs(x1-x2)+abs(y1-y2) == 2{
-//                if x1 == x2{
-//                    return false
-//                }
-//                if y1 == y2{
-//                    var can_castle = false
-//
-//                    //check if we are in check right now
-//                    if self.color_in_check(color:String(my_color)){
-//                        return false
-//                    }
-//
-//                    //check if there is something in the way?
-//                    if self.board[(x1+x2)/2][y1] != "BLANK"{
-//                        return false
-//                    }
-//
-//                    //check if we are in check on the way?
-//                    let tboard = self.copy_board()
-//                    tboard.board[(x1+x2)/2][y1] = p
-//                    tboard.board[x1][y1] = "BLANK"
-//                    if tboard.color_in_check(color:String(my_color)){
-//                        return false
-//                    }
-//
-//                    if (my_color == "W"){
-//                        if x2 > x1 && self.wkc!{
-//                            can_castle = true
-//                        }
-//                        if x2 < x1 && self.wqc!{
-//                            can_castle = true
-//                        }
-//                    }
-//                    if (my_color == "B"){
-//                        if x2 > x1 && self.bkc!{
-//                            can_castle = true
-//                        }
-//                        if x2 < x1 && self.wkc!{
-//                            can_castle = true
-//                        }
-//                    }
-//                    if can_castle == false{
-//                        return false
-//                    }
-//                    //return false
-//                }
-//            }
-//        }
-//
-//        let tboard = self.copy_board()
-//        tboard.board[x1][y1] = "BLANK"
-//        tboard.board[x2][y2] = p
-//        if tboard.color_in_check(color:String(my_color)){
-//            return false
-//        }
-//
-//        return true
-//    }
+ 
     
     //"moves a move", returns the move, and the new board.
     //Let's deprecate the 'legal' function!
@@ -601,25 +456,4 @@ func cartesian_to_standard(x: Int, y:Int) -> String{
     let letters   = ["a","b","c","d","e","f","g","h"]
     return letters[x] + String(8-y)
 }
-
-////DEPRECATED - Convert a MOVE to standard notation
-//func cartesian_move_to_standard (x1: Int, y1: Int, x2: Int, y2:Int, p1:String, p2:String) -> String{
-//    var to_return : String = ((p1 == "WP" || p1 == "BP") ? "" : String(p1.last!))
-//    let letters   = ["a","b","c","d","e","f","g","h"]
-//    //let r_letters = ["h","g","f","e","d","c","b","a"]
-//
-//    to_return = to_return + ((p2 == "BLANK") ? "" : "x") + letters[x2] + String(8-y2)
-//
-//    if (p1.last! == "K") && (abs(x2-x1) == 2){
-//        if x2 > x1{
-//            return "O-O"
-//        }
-//        else{
-//            return "O-O-O"
-//        }
-//    }
-//
-//    return to_return
-//}
-
 

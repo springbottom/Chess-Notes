@@ -29,27 +29,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         return container
     }()
-    
-    
-    
-    func saveContext () {
-        let context = persistentContainer.viewContext
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                // Show the error here
-            }
-        }
-    }
+
     
     var masterkey = MasterKey()
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
         let context = (NSApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        let contentView = ContentView(masterkey:masterkey).environment(\.managedObjectContext,context)//,
-                                      //userData: UserData(text:"")).environment(\.managedObjectContext,context)
+        let contentView = ContentView(masterkey:masterkey).environment(\.managedObjectContext,context)
         window = EditorWindow(masterkey:masterkey)
         window.center()
         window.setFrameAutosaveName("Main Window")
@@ -57,6 +44,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.makeKeyAndOrderFront(nil)
     }
 
+    func popup(){
+        
+    }
+    
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
