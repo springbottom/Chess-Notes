@@ -69,6 +69,27 @@ class MasterKey: ObservableObject{
     @Published var keycode : Int = 0
     @Published var current_index : Int = 0
     @Published var game_length : Int = 1
+    
+    func backward(){
+        if (self.current_index != 0){
+            self.current_index = self.current_index - 1
+        }
+        else{
+            //make a noise
+        }
+        return
+    }
+    
+    func forward(){
+        if (self.current_index != self.game_length - 1){
+            self.current_index = self.current_index + 1
+        }
+        else{
+            //make a noise?
+        }
+        return
+    }
+    
 }
 
 class EditorWindow: NSWindow {
@@ -81,23 +102,10 @@ class EditorWindow: NSWindow {
         self.masterkey.keycode = Int(event.keyCode)
         
         if event.keyCode == 123{
-            print("? should be going back in time")
-            if (self.masterkey.current_index != 0){
-                self.masterkey.current_index = self.masterkey.current_index - 1
-            }
-            else{
-                //make a noise?
-            }
+            self.masterkey.backward()
         }
         if event.keyCode == 124{
-            print("? should be going forward in time")
-            if (self.masterkey.current_index != self.masterkey.game_length - 1){
-                self.masterkey.current_index = self.masterkey.current_index + 1
-            }
-            else{
-                //make a noise?
-            }
-            
+            self.masterkey.forward()
         }
         
     }

@@ -8,14 +8,6 @@
 
 import Foundation
 
-/*
- So a game-state is determined by the pieces on the board, but also by the fact
- whether or not black/white can castle king/queen side.
- I think for the purpose of this annotation software, we can ignore the following rules:
-  - 3 state repetition is draw,
-  - 50 moves without moving a pawn or capturing a piece
- */
-
 class BoardState{
     var board : [[String]] //The only thing that is necessary is the board
     var wkc,wqc,bkc,bqc : Bool? //white/black king/queenside castling
@@ -25,11 +17,11 @@ class BoardState{
     var en_passant: String?
     
     init(board : [[String]],
-         wkc : Bool?, wqc : Bool?,
-         bkc : Bool?, bqc : Bool?,
-         to_move : String?,
-         hmc: Int?, fmc:Int?,
-         en_passant: String?
+         wkc : Bool? = nil, wqc : Bool? = nil,
+         bkc : Bool? = nil, bqc : Bool? = nil,
+         to_move : String? = nil,
+         hmc: Int? = nil, fmc:Int? = nil,
+         en_passant: String? = nil
          ){
         
         self.board = board
@@ -95,12 +87,11 @@ class BoardState{
         }
         
         to_return = to_return + (self.en_passant ?? "-") + " "
-        to_return = to_return + self.hmc! + " " + self.fmc!
+        to_return = to_return + String(self.hmc!) + " " + String(self.fmc!)
         
         //var to_return = self.board.joined(separator:[","])
         return to_return
     }
-    
     
     //DEPRECATED - transform the board to a string
     func to_string() -> String{
@@ -110,21 +101,19 @@ class BoardState{
          as the unique string associated to a boardstate
          */
         var to_return = self.board.joined().joined(separator:",")
-        to_return = to_return + String(wkc) + String(wqc) + String(bkc) + String(bqc)
+        to_return = to_return + String(wkc!) + String(wqc!) + String(bkc!) + String(bqc!)
         return to_return
     }
     
     //copy a board?! this returns a ccopy of the CLASS...
     func copy_board() -> BoardState{
-        //var to_return = [[String]](repeating: [String](repeating:"",count:8), count:8)
-        //for x in 0...7{
-        //    for y in 0...7{
-        //        to_return[x][y] = self.board[x][y]
-        //    }
-        //}
         return BoardState(board:self.board,
                           wkc:self.wkc,wqc:self.wqc,
-                          bkc:self.bkc,bqc:self.bqc)//to_return
+                          bkc:self.bkc,bqc:self.bqc,
+                          to_move:self.to_move,
+                          hmc:self.hmc,
+                          fmc:self.fmc,
+                          en_passant:self.en_passant)
     }
     
     //searches the board for all indices that match.
@@ -249,7 +238,7 @@ class BoardState{
         return false
     }
     
-    //checks if move is legal
+    //DEPRECATED - checks if move is legal
     func legal(x1: Int, y1: Int, x2: Int, y2:Int) -> Bool {
         //Very naive legal move checking. So what we can do is
         //first check whether the move is able to be made by the piece being moved
@@ -350,18 +339,18 @@ class BoardState{
                     }
                     
                     if (my_color == "W"){
-                        if x2 > x1 && self.wkc{
+                        if x2 > x1 && self.wkc!{
                             can_castle = true
                         }
-                        if x2 < x1 && self.wqc{
+                        if x2 < x1 && self.wqc!{
                             can_castle = true
                         }
                     }
                     if (my_color == "B"){
-                        if x2 > x1 && self.bkc{
+                        if x2 > x1 && self.bkc!{
                             can_castle = true
                         }
-                        if x2 < x1 && self.wkc{
+                        if x2 < x1 && self.wkc!{
                             can_castle = true
                         }
                     }
@@ -382,14 +371,228 @@ class BoardState{
         
         return true
     }
+    
+    //"moves a move", returns the move, and the new board.
+    //Let's deprecate the 'legal' function!
+    func move(x1: Int, y1: Int, x2: Int, y2:Int) -> (String,BoardState)?{
+        
+        let p = self.board[x1][y1]
+        if p == "BLANK"{return nil} //can't move nothing.
+        
+        let my_color     = p.first! //p[p.startIndex]
+        let my_piecetype = p.last!  //p[p.index(before : p.endIndex)]
+        let my_direction = (my_color == "W") ? -1 : 1
+        
+        //if we move a pawn twice we need to remember that.
+        var en_passant : String? = nil
+        
+        //record whether we need to increment the half-move-clock.
+        var increment_hmc : Bool = true
+        
+        //record whether or not the castling rights get revoked.
+        var cwkc = false; var cwqc = false
+        var cbkc = false; var cbqc = false //do we need to change the rights to none?
+        
+        //keep track of if we promote
+        var did_promote : Bool = false
+        
+        //here are the squares that get changed
+        var changed : [(Int,Int,String)] = []
+        
+        //If we are trying to move an incorrect color?
+        if my_color.lowercased() != self.to_move!{return nil}
+        
+        //If we are trying to capture our own piece? it's not legal.
+        if self.board[x2][y2].first! == my_color && self.board[x2][y2] != "BLANK"{return nil}
+        
+        //If we haven't moved, it isn't a legal move
+        if x1 == x2 && y1 == y2{return nil}
+        
+        //now, if we are moving a pawn:
+        if my_piecetype == "P"{
+            var good = 0
+            if x1 == x2 && y2 - y1 == my_direction && self.board[x2][y2] == "BLANK"{
+                //we are moving forward one into a blank square
+                good = 1
+                if (y2 == 0 && my_color == "W") || (y2 == 7 && my_color == "B"){
+                    did_promote = true
+                }
+            }
+            else if abs(x1 - x2) == 1 && y2 - y1 == my_direction && self.board[x2][y2] != "BLANK"{
+                //we are capturing a piece
+                good = 1
+                if (y2 == 0 && my_color == "W") || (y2 == 7 && my_color == "B"){
+                    did_promote = true
+                }
+            }
+            else if x1 == x2 && y2 - y1 == my_direction*2 && board[x1][y1+my_direction] == "BLANK" &&
+                board[x1][y2] == "BLANK" && y1 == (7 - 5*my_direction)/2{
+                //we are pushing two from our original rank
+                en_passant = cartesian_to_standard(x:x1,y:(y1+y2)/2)
+                good = 1
+            }
+            else if abs(x1 - x2) == 1 && y2 - y1 == my_direction && cartesian_to_standard(x:x2,y:y2) == (self.en_passant ?? ""){
+                //we have taken by en passant!?!?
+                good = 1
+                changed.append((x2,y1,"BLANK")) // taking the en-passant pawn.
+            }
+            
+            //You moved the pawn to an invalid square.
+            if good == 0{return nil}
+            increment_hmc = false
+        }
+        
+        //checks if it's in a line and blank
+        if my_piecetype == "R" || my_piecetype == "B" || my_piecetype == "Q"{
+            if !self.empty_line(x1:x1,y1:y1,x2:x2,y2:y2){
+                return nil
+            }
+        }
+        
+        //check the line is going the right way
+        if my_piecetype == "B"{
+            if abs(x1-x2) == 0 || abs(y1-y2) == 0{
+                return nil
+            }
+        }
+        if my_piecetype == "R"{
+            if x1-y1 == x2-y2 || x1+y1 == x2+y2{
+                return nil
+            }
+            if my_color == "W"{
+                if x1 == 0{cwqc = true}
+                if x1 == 7{cwkc = true}
+            }
+            if my_color == "B"{
+                if x1 == 0{cbqc = true}
+                if x1 == 7{cbkc = true}
+            }
+        }
+        
+        //other pieces
+        if my_piecetype == "N"{
+            if abs(x1-x2)+abs(y1-y2) == 3{
+                if abs(x1-x2) == 3 || abs(y1-y2) == 3{
+                    return nil
+                }
+            }
+            else{
+                return nil
+            }
+        }
+        if my_piecetype == "K"{
+            
+            if my_color == "W"{cwkc = false; cwqc = false}
+            if my_color == "B"{cbkc = false; cbqc = false}
+            
+            if abs(x1-x2)+abs(y1-y2) > 2{
+                return nil
+            }
+            if abs(x1-x2)+abs(y1-y2) == 2{
+                if x1 == x2{
+                    return nil
+                }
+                if y1 == y2{
+                    var can_castle = false
+                    
+                    //check if we are in check right now
+                    if self.color_in_check(color:String(my_color)){
+                        return nil
+                    }
+                    
+                    //check if there is something in the way?
+                    if self.board[(x1+x2)/2][y1] != "BLANK"{
+                        return nil
+                    }
+                    
+                    //check if we are in check on the way?
+                    let tboard = self.copy_board()
+                    tboard.board[(x1+x2)/2][y1] = p
+                    tboard.board[x1][y1] = "BLANK"
+                    if tboard.color_in_check(color:String(my_color)){
+                        return nil
+                    }
+                    
+                    if (my_color == "W"){
+                        if x2 > x1 && self.wkc!{
+                            can_castle = true
+                            changed.append((7,7,"BLANK"))
+                            changed.append((5,7,"WR"))
+                        }
+                        if x2 < x1 && self.wqc!{
+                            can_castle = true
+                            changed.append((0,7,"BLANK"))
+                            changed.append((3,7,"BLANK"))
+                        }
+                    }
+                    if (my_color == "B"){
+                        if x2 > x1 && self.bkc!{
+                            can_castle = true
+                            changed.append((7,0,"BLANK"))
+                            changed.append((5,0,"BR"))
+                        }
+                        if x2 < x1 && self.wkc!{
+                            can_castle = true
+                            changed.append((0,0,"BLANK"))
+                            changed.append((3,0,"BLANK"))
+                        }
+                    }
+                    if can_castle == false{
+                        return nil
+                    }
+                }
+            }
+        }
+        
+        if self.board[x2][y2] != "BLANK"{increment_hmc = false}
+        
+        //PROMOTION CODE HERE
+        if did_promote{
+            changed.append((x1,y1,"BLANK"))
+            changed.append((x2,y2,my_color + "Q"))
+        }
+        else{
+            changed.append((x1,y1,"BLANK"))
+            changed.append((x2,y2,p))
+        }
+        
+        let tboard = self.copy_board()
+        for x in changed{
+            tboard.board[x.0][x.1] = x.2
+        }
+        if tboard.color_in_check(color:String(my_color)){
+            return nil
+        }
+        //increment full move clock
+        if self.to_move == "b"{tboard.fmc = tboard.fmc! + 1}
+        //set the en-passant
+        tboard.en_passant = en_passant
+        //increment half move clock
+        if increment_hmc{tboard.hmc = tboard.hmc! + 1}
+        //change to_move
+        tboard.to_move = ((tboard.to_move == "w") ? "b" : "w")
+        //change the castling rights
+        if cwkc{tboard.wkc = false}
+        if cwqc{tboard.wqc = false}
+        if cbkc{tboard.bkc = false}
+        if cbqc{tboard.bqc = false}
+        
+        return ("",tboard)
+    }
 }
 
 /*
  These are functions that aren't 'board specific'?
  */
 
-////Convert to standard notation
-func cartesian_to_standard (x1: Int, y1: Int, x2: Int, y2:Int, p1:String, p2:String) -> String{
+//Convert a cartesian coordinate to standard letters
+func cartesian_to_standard(x: Int, y:Int) -> String{
+    let letters   = ["a","b","c","d","e","f","g","h"]
+    return letters[x] + String(8-y)
+}
+
+//Convert a MOVE to standard notation
+func cartesian_move_to_standard (x1: Int, y1: Int, x2: Int, y2:Int, p1:String, p2:String) -> String{
     var to_return : String = ((p1 == "WP" || p1 == "BP") ? "" : String(p1.last!))
     let letters   = ["a","b","c","d","e","f","g","h"]
     //let r_letters = ["h","g","f","e","d","c","b","a"]
@@ -408,240 +611,4 @@ func cartesian_to_standard (x1: Int, y1: Int, x2: Int, y2:Int, p1:String, p2:Str
     return to_return
 }
 
-
-//
-///*
-// Board-specific functions belong to the class in reality?
-// */
-////copy a board?!
-//func copy_board(board:[[String]]) -> [[String]]{
-//    var to_return = [[String]](repeating: [String](repeating:"",count:8), count:8)
-//    //var to_return = [[String]]()
-//    for x in 0...7{
-//        //to_return.append([])
-//        for y in 0...7{
-//            to_return[x][y] = board[x][y]
-//            //to_return.last.append(board[x][y])
-//        }
-//    }
-//    return to_return
-//}
-//
-////searches the board for all indices that match.
-//func search_for_piece(board:[[String]],p:String) -> [[Int]]{
-//    var to_return = [[Int]]()
-//    for x in 0...7{
-//        for y in 0...7{
-//            if (board[x][y] == p){
-//                to_return.append([x,y])
-//            }
-//        }
-//    }
-//    return to_return
-//}
-//
-////check if a color is in check
-//func color_in_check(board:[[String]], color:String) -> Bool{
-//    let king_loc = search_for_piece(board:board,p:color+"K")[0]
-//    let enemy_color = (color == "W") ? "B" : "W"
-//    let enemy_direction = (color == "W") ? -1 : 1
-//
-//    var attackers = search_for_piece(board:board,p:enemy_color+"P")
-//    for a in attackers{
-//        if king_loc[1] == a[1]+enemy_direction && abs(king_loc[0]-a[0]) == 1{
-//            return true
-//        }
-//    }
-//
-//    attackers = search_for_piece(board:board,p:enemy_color+"R")
-//    for a in attackers{
-//        if a[0]+a[1] == king_loc[0]+king_loc[1] || a[0]-a[1] == king_loc[0]-king_loc[1]{
-//            continue
-//        }
-//        if empty_line(board:board,x1:king_loc[0],y1:king_loc[1],x2:a[0],y2:a[1]){
-//            return true
-//        }
-//    }
-//
-//    attackers = search_for_piece(board:board,p:enemy_color+"N")
-//    for a in attackers{
-//        if abs(a[0]-king_loc[0]) == 1 && abs(a[1]-king_loc[1]) == 2{
-//            return true
-//        }
-//        else if abs(a[0]-king_loc[0]) == 2 && abs(a[1]-king_loc[1]) == 1{
-//            return true
-//        }
-//    }
-//
-//    attackers = search_for_piece(board:board,p:enemy_color+"B")
-//    for a in attackers{
-//        if a[0] == king_loc[0] || a[1] == king_loc[1]{
-//            continue
-//        }
-//        if empty_line(board:board,x1:king_loc[0],y1:king_loc[1],x2:a[0],y2:a[1]){
-//            return true
-//        }
-//    }
-//
-//    attackers = search_for_piece(board:board,p:enemy_color+"Q")
-//    for a in attackers{
-//        if empty_line(board:board,x1:king_loc[0],y1:king_loc[1],x2:a[0],y2:a[1]){
-//            return true
-//        }
-//    }
-//
-//    attackers = search_for_piece(board:board,p:enemy_color+"K")
-//    for a in attackers{
-//        if abs(a[0]-king_loc[0])+abs(a[1]-king_loc[1]) == 1{
-//            return true
-//        }
-//        if abs(a[0]-king_loc[0])+abs(a[1]-king_loc[1]) == 2{
-//            if a[0] != king_loc[0] || a[1] == king_loc[1]{
-//                return true
-//            }
-//        }
-//
-//    }
-//
-//    return false
-//}
-//
-////Color-neutral in_check check.
-//func in_check(board:[[String]]) -> Bool {
-//    if color_in_check(board:board,color:"W") || color_in_check(board:board,color:"B"){
-//        return true
-//    }
-//    return false
-//}
-//
-////returns true if the two points are in a straight line, and nothing inbetween
-//func empty_line(board:[[String]],x1: Int, y1: Int, x2: Int, y2:Int) -> Bool{
-//    //print("checking blank line",x1,y1,x2,y2)
-//    if x1 == x2{
-//        print("equal x")
-//        if abs(y1-y2) == 1{
-//            return true
-//        }
-//        return !(min(y1,y2)+1...max(y1,y2)-1).map({board[x1][$0] != "BLANK"}).contains(true)
-//    }
-//    if y1 == y2{
-//        print("equal y")
-//        if abs(x1-x2) == 1{
-//            return true
-//        }
-//        return !(min(x1,x2)+1...max(x1,x2)-1).map({board[$0][y1] != "BLANK"}).contains(true)
-//    }
-//    if x1-x2 == y1-y2{
-//        print("minus B",x1,y1)
-//        if abs(x1-x2) == 1{
-//            return true
-//        }
-//        return !(1...max(x1,x2)-min(x1,x2)-1).map({board[min(x1,x2)+$0][min(y1,y2)+$0] != "BLANK"}).contains(true)
-//    }
-//    if x1+y1 == x2+y2{
-//        print("add B",x1,y1)
-//        if abs(x1-x2) == 1{
-//            return true
-//        }
-//        return !(1...max(x1,x2)-min(x1,x2)-1).map({board[min(x1,x2)+$0][max(y1,y2)-$0] != "BLANK"}).contains(true)
-//    }
-//    //print("no hooks")
-//    return false
-//}
-//
-////checks if move is legal
-//func legal(board:[[String]], x1: Int, y1: Int, x2: Int, y2:Int) -> Bool {
-//    //Very naive legal move checking. So what we can do is
-//    //first check whether the move is able to be made by the piece being moved
-//
-//    let p = board[x1][y1]
-//
-//    if p == "BLANK"{
-//        return false
-//    }
-//
-//    let my_color = p[p.startIndex]
-//    let my_piecetype = p[p.index(before : p.endIndex)]
-//    let my_direction = (my_color == "W") ? -1 : 1
-//
-//    if board[x2][y2][board[x2][y2].startIndex] == my_color && board[x2][y2] != "BLANK"{
-//        return false
-//    }
-//
-//    if x1 == x2 && y1 == y2{
-//        return false
-//    }
-//    if my_piecetype == "P"{
-//        var good = 0
-//        if x1 == x2 && y2 - y1 == my_direction && board[x2][y2] == "BLANK"{
-//            good = 1
-//        }
-//        if abs(x1 - x2) == 1 && y2 - y1 == my_direction && board[x2][y2] != "BLANK"{
-//            good = 1
-//        }
-//        if x1 == x2 && y2 - y1 == my_direction*2 && board[x1][y1+my_direction] == "BLANK" &&
-//            board[x1][y2] == "BLANK" && y1 == (7 - 5*my_direction)/2{
-//            good = 1
-//        }
-//        //EN PASSANT,
-//        if good == 0{
-//            return false
-//        }
-//    }
-//
-//    //checks if it's in a line and blank
-//    if my_piecetype == "R" || my_piecetype == "B" || my_piecetype == "Q"{
-//        print("check blank line")
-//        if !empty_line(board:board,x1:x1,y1:y1,x2:x2,y2:y2){
-//            return false
-//        }
-//    }
-//
-//    //check the line is going the right way
-//    if my_piecetype == "B"{
-//        if abs(x1-x2) == 0 || abs(y1-y2) == 0{
-//            return false
-//        }
-//    }
-//    if my_piecetype == "R"{
-//        if x1-y1 == x2-y2 || x1+y1 == x2+y2{
-//            return false
-//        }
-//    }
-//
-//    //other pieces
-//    if my_piecetype == "N"{
-//        if abs(x1-x2)+abs(y1-y2) == 3{
-//            if abs(x1-x2) == 3 || abs(y1-y2) == 3{
-//                return false
-//            }
-//        }
-//        else{
-//            return false
-//        }
-//    }
-//    if my_piecetype == "K"{
-//        if abs(x1-x2)+abs(y1-y2) > 2{
-//            return false
-//        }
-//        if abs(x1-x2)+abs(y1-y2) == 2{
-//            if x1 == x2{
-//                return false
-//            }
-//            if y1 == y2{
-//                //no castling yet
-//                return false
-//            }
-//        }
-//    }
-//
-//    var tboard = copy_board(board:board)
-//    tboard[x1][y1] = "BLANK"
-//    tboard[x2][y2] = p
-//    if color_in_check(board:tboard,color:String(my_color)){
-//        return false
-//    }
-//
-//    return true
-//}
 

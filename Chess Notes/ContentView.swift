@@ -23,51 +23,36 @@ let default_board : [[String]] = [
 
 struct ContentView: View {
     
+    //Fetch all the data inside the coredata framework
     @FetchRequest(entity:Note.entity(), sortDescriptors:[]) var stored_notes: FetchedResults<Note>
     
-    
+    //I believe these are the frames that hover over the chessboard detecting when we drop a piece
     @State var frames = [CGRect](repeating: .zero, count:64)
-    @State var notes: String = ""
-    @State var board_history: [BoardState] = [BoardState(board:default_board,
-                                                         wkc:true, wqc:true,
-                                                         bkc:true, bqc:true)]
-    @State var moves: [String] = [""]
     
-    @ObservedObject var masterkey: MasterKey
-    
-    //@ObservedObject var userData: UserData
+    //This is the variable that holds the text inside the 'note' textbox.
     @State var note_text = ""
     
+    //This is the board_history of the current line of play. In future, we need to implement different lines.
+    @State var board_history: [BoardState] = [BoardState(board:default_board,
+                                                         wkc:true, wqc:true,
+                                                         bkc:true, bqc:true,
+                                                         to_move: "w",
+                                                         hmc: 0, fmc:1)]
+    
+    //This is the array that holds the sequence of moves so far in the main line of play. These are shown
+    @State var moves: [String] = [""]
+    
+    //This is the observed object that interacts with the editor window when we press left/right.
+    @ObservedObject var masterkey: MasterKey
+    
+    //This is the environment that makes the coredata work. I don't really know what this is either.
     @Environment(\.managedObjectContext) var moc
     
-    
-//    func button_pressed(keycode: Int){
-//        if (keycode == 123){
-//            if current_index == 0{
-//                //make a noise! we can't go any further back
-//                print("youve reached the first move")
-//                return
-//            }
-//            self.current_index = self.current_index - 1
-//            //piece_names = board_history[current_index]
-//        }
-//        if (keycode == 124){
-//            if current_index == board_history.count-1{
-//                print("you've reached the last move")
-//                return
-//            }
-//            self.current_index = self.current_index + 1
-//            //piece_names = board_history[current_index]
-//        }
-//
-//        print("watashi wa kitta desu ne")
-//        return
-//    }
-    
+    //This function handles the event where we release a piece, and it looks for a match.
+    //The logic should really be handled inside of Chess_backend or something...
     func released(location: CGPoint, index_x: Int, index_y: Int, name: String) -> Void{
         if let match = frames.firstIndex(where: {$0.contains(location)}){
-            //print("board_history.count",board_history.count)
-            //if legal(board:board_history[masterkey.current_index],x1:index_x,y1:index_y,x2:match/8,y2:match%8) && self.masterkey.current_index == self.board_history.count-1{
+            
             if board_history[masterkey.current_index].legal(x1:index_x,y1:index_y,x2:match/8,y2:match%8) && self.masterkey.current_index == self.board_history.count-1{
                 
                 let p1 = board_history[masterkey.current_index].board[index_x][index_y]
@@ -186,15 +171,11 @@ struct ContentView: View {
                     }
                 }
                 .frame(width:CGFloat(300),height:CGFloat(600))
-                    //.border(Color.blue)
-                
-                
                 
                 ZStack{
                     Board(frames: self.$frames)
                         .frame(width: CGFloat(600), height: CGFloat(600))
                     
-                    //Text("?")
                     ForEach(0..<8){x in
                         ForEach(0..<8){y in
                             Piece(name:self.board_history[self.masterkey.current_index].board[x][y],
@@ -210,8 +191,7 @@ struct ContentView: View {
                     Text("Analysis Pane")
                     HStack{
                         Button(action: {
-                            //Actually need to reset everything?
-                            //self.board_history[self.masterkey.current_index] = default_board
+
                         }){
                             Text("Reset Board")
                         }
@@ -220,18 +200,10 @@ struct ContentView: View {
                     VStack{
                         Text("Debug Region")
                         Button(action: {
-                            //print("debug says ",self.masterkey.current_index,self.masterkey.game_length)
-                            //print("What is in userdata?" + self.userData.text)
-                            //self.userData.text = "Hello! This is debug speaking"
-                            //print(self.userData.text)
+                            
                         }){
-                            //VStack{
-                                Text("Debug Button")
-                            //    Text(stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}?.note ?? "")
-                            //}
+                            Text("Debug Button")
                         }
-                        //Text("In memory:" + (stored_notes.first{$0.board_state == board_history[masterkey.current_index].to_string()}?.note ?? ""))
-                        //Text("In textbox?:" + self.note_text)//self.userData.text)
                         
                     }
                     
@@ -241,15 +213,13 @@ struct ContentView: View {
                         Text(self.moves.joined(separator:" "))
                         HStack{
                             Button(action: {
-                                print("pressed left")
-                                //self.button_pressed(keycode:123)
+                                self.masterkey.backward()
                             }){
                                 Text("⬅️")
                                 .font(.system(size: 30))
                             }
                             Button(action: {
-                                print("pressed right")
-                                //self.button_pressed(keycode:124)
+                                self.masterkey.forward()
                             }){
                                 Text("➡️")
                                 .font(.system(size: 30))
@@ -270,29 +240,5 @@ struct ContentView: View {
     }
 }
 
-struct Board: View {
-    @Binding var frames: [CGRect]
-    let colors = [Color(NSColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1)),
-                  Color(NSColor(red: 1, green: 1, blue: 1, alpha: 1))]
-    var body: some View {
-        VStack(spacing : 0){
-            ForEach((0...7), id:\.self){y in
-                HStack(spacing : 0){
-                    ForEach((0...7),id:\.self){x in
-                            Rectangle()
-                                .foregroundColor(self.colors[(x+y)%2])
-                                .overlay(
-                                    GeometryReader{ geo in
-                                        Color.clear
-                                            .onAppear{
-                                                self.frames[x*8+y] = geo.frame(in: .global)
-                                            }
-                                    }
-                                )
-                    }
-                }
-            }
-        }
-    }
-}
+
 
