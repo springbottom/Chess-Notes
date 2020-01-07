@@ -34,7 +34,8 @@ class BoardState{
     }
     
     //transform the board into its FEN - which we should use rather than my other janky thing..
-    func to_FEN() -> String{
+    func to_FEN(serialise: Bool = false) -> String{
+        //if serialise is true, then we should not include the hmc and the fmc
         var to_return = ""
         var blank_count = 0
         for y in 0...7{
@@ -86,12 +87,22 @@ class BoardState{
             to_return = to_return + " "
         }
         
-        to_return = to_return + (self.en_passant ?? "-") + " "
-        to_return = to_return + String(self.hmc!) + " " + String(self.fmc!)
+        to_return = to_return + (self.en_passant ?? "-")
+        if !serialise{
+            to_return = to_return + " " + String(self.hmc!) + " " + String(self.fmc!)
+        }
         
         //var to_return = self.board.joined(separator:[","])
         return to_return
     }
+    
+    //FEN without the fuss - I think we will ignore the hmc and the fmc to allow for transposition kind of ideas.
+//    func serialise() -> String{
+//        var to_return = self.to_FEN()
+//        to_return.removeLast(4)
+//        //print(to_return)
+//        return to_return
+//    }
     
     //copy a board?! this returns a ccopy of the CLASS...
     func copy_board() -> BoardState{
@@ -226,9 +237,7 @@ class BoardState{
         return false
     }
  
-    
     //"moves a move", returns the move, and the new board.
-    //Let's deprecate the 'legal' function!
     func move(x1: Int, y1: Int, x2: Int, y2:Int) -> (String,BoardState)?{
         
         let p = self.board[x1][y1]
@@ -445,6 +454,42 @@ class BoardState{
         
         return (to_return,tboard)
     }
+    
+    //
+    func find_move(move: String) -> (String,BoardState)?{
+        //Given a move in algebraic notation, time to find it!
+        //First, we have specials, castling:
+        if move == "O-O"{
+            if self.to_move == "w"{
+                return self.move(x1: 4, y1: 7, x2:6, y2:7)
+            }
+            else{
+                return self.move(x1: 4, y1: 7, x2:2, y2:7)
+            }
+        }
+        if move == "O-O-O"{
+            if self.to_move == "w"{
+                return self.move(x1: 4, y1:0, x2:6,y2:0)
+            }
+            else{
+                return self.move(x1:4,y1:0,x2:2,y2:0)
+            }
+        }
+        
+        let letters = ["a","b","c","d","e","f","g","h"]
+        if let move_dict = read_move(standard: move){
+            let matching_pieces = search_for_piece(p:self.to_move!.uppercased() + move_dict["piece"]!)
+            for coordinate in matching_pieces{
+                if move_dict["file1"]! != "" && letters[coordinate[0]] != move_dict["file1"] {continue}
+                if move_dict["rank1"]! != "" && coordinate[1] != 8-Int(move_dict["rank1"]!)! {continue}
+                if let good = self.move(x1:coordinate[0], y1:coordinate[1], x2: letters.firstIndex(of: move_dict["file2"]!)!, y2: 8-Int(move_dict["rank2"]!)!){
+                    return good
+                }
+            }
+        }
+        
+        return nil
+    }
 }
 
 /*
@@ -457,3 +502,65 @@ func cartesian_to_standard(x: Int, y:Int) -> String{
     return letters[x] + String(8-y)
 }
 
+//takes in a PGN, outputs a board_history, and a list of moves.
+func import_PGN(PGN: String) -> ([BoardState],[String]){
+    
+    //https://www.chessclub.com/help/PGN-spec
+    
+    var board_history = [default_boardstate]
+    var moves = [""]
+    
+    var  PGN_data = (PGN.split{$0.isNewline})
+    PGN_data = PGN_data.filter{String($0) != ""}
+    PGN_data = PGN_data.filter{String($0.first ?? Character("")) != "["}
+    
+    for line in PGN_data{
+        //you gotta strip it of the comments, in {...}
+        var temp_line = String(line)
+        while let found_range = temp_line.range(of:#"\{.*?\}"#,options:.regularExpression){
+            print("found a comment?", temp_line[found_range])
+            temp_line.removeSubrange(found_range)
+        }
+        let move_list = temp_line.split{$0.isWhitespace}
+        for move in move_list{
+            let last_state = board_history.last
+            if let new_state  = last_state!.find_move(move:String(move)){
+                board_history.append(new_state.1)
+                moves.append(new_state.0)
+            }
+        }
+    }
+    //For now, I want to ignore the metadata.
+    
+    return (board_history,moves)
+}
+
+//Some regex for reading moves
+func read_move(standard: String) -> [String:String]?{
+    //https://nshipster.com/swift-regular-expressions/
+    //piece, file1, rank1, file2, rank2, promote
+    var to_return : [String:String] = [:]
+    
+    let pattern = #"""
+    (?x)
+    (?<piece>[A-Z]?)
+    (?<file1>[a-h]?)
+    (?<rank1>[0-9]?)
+    x?
+    (?<file2>[a-h])
+    (?<rank2>[0-9])
+    =?
+    (?<promote>[A-Z]?)
+    """#
+
+    let fields = ["piece","file1","rank1","file2","rank2","promote"]
+    let regex = try! NSRegularExpression(pattern: pattern, options: [])
+    let nsrange = NSRange(standard.startIndex..<standard.endIndex,in: standard)
+    if let match = regex.firstMatch(in : standard, options: [], range: nsrange)
+    {
+        to_return = Dictionary(uniqueKeysWithValues: zip(fields, fields.map{String(standard[Range(match.range(withName:$0),in:standard)!])}))
+        if to_return["piece"] == ""{to_return["piece"] = "P"}
+        return to_return
+    }
+    return nil
+}
