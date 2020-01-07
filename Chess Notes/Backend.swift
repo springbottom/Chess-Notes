@@ -43,17 +43,10 @@ class Backend: ObservableObject{
     }
     
     func process_move(move:String, new_board: BoardState){
-        //if let (move,new_board) = self.board_history[masterkey.current_index].move(x1:x1,y1:y1,x2:x2,y2:y2){
-            //if self.current_index == self.board_history.count-1{
         self.moves.append(move)
         self.current_index = self.current_index + 1
         self.game_length   = self.game_length + 1
         self.board_history.append(new_board)
-                
-                //self.stored_notes.append(stored_notes.first{$0.board_state == self.masterkey.board_history[masterkey.current_index].to_FEN(serialise:true)}?.note ?? "")
-        //self.update_text()
-            //}
-        //}
     }
 
     func reset(){
@@ -63,7 +56,7 @@ class Backend: ObservableObject{
         self.game_length = 1
         self.stored_notes = [""]
 
-        self.note_text = ""//self.stored_notes.first{$0.board_state == self.masterkey.board_history[self.masterkey.current_index].to_FEN(serialise:true)}?.note ?? ""
+        self.note_text = ""
     }
     
 }
