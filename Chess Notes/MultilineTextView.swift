@@ -14,8 +14,8 @@ import Combine
 struct EditorTextView: NSViewRepresentable {
     @Binding var text: String
     
-    var onEditingChanged: () -> Void = {}
-    var onCommit: () -> Void = {}
+    var onEditingChanged: () -> Void = {print("onEditingChanged")}
+    var onCommit: () -> Void = {print("onCommit")}
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -32,6 +32,7 @@ struct EditorTextView: NSViewRepresentable {
         view.text = text
         view.selectedRanges = context.coordinator.selectedRanges
     }
+    
 }
 
 extension EditorTextView {
@@ -47,7 +48,7 @@ extension EditorTextView {
             guard let textView = notification.object as? NSTextView else {
                 return
             }
-            
+            print("textDidBeginEditing")
             self.parent.text = textView.string
             self.parent.onEditingChanged()
         }
@@ -56,7 +57,7 @@ extension EditorTextView {
             guard let textView = notification.object as? NSTextView else {
                 return
             }
-            
+            print("textDidChange")
             self.parent.text = textView.string
             self.selectedRanges = textView.selectedRanges
         }
@@ -65,7 +66,7 @@ extension EditorTextView {
             guard let textView = notification.object as? NSTextView else {
                 return
             }
-            
+            print("textDidEndEditing")
             self.parent.text = textView.string
             self.parent.onCommit()
         }
@@ -127,7 +128,7 @@ final class CustomTextView: NSView {
         
         let textView                     = NSTextView(frame: .zero, textContainer: textContainer)
         textView.autoresizingMask        = .width
-        textView.backgroundColor         = NSColor.textBackgroundColor
+        textView.backgroundColor         = NSColor.systemOrange//textBackgroundColor
         textView.delegate                = self.delegate
         textView.drawsBackground         = true
         textView.font                    = self.font
@@ -161,6 +162,10 @@ final class CustomTextView: NSView {
         
         setupScrollViewConstraints()
         setupTextView()
+    }
+    
+    override func mouseDown(with event: NSEvent) {
+        print("clicked?")
     }
     
     func setupScrollViewConstraints() {

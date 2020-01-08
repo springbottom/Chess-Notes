@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreData
 
 class Backend: ObservableObject{
     @Published var keycode : Int = 0
@@ -20,12 +21,30 @@ class Backend: ObservableObject{
     @Published var stored_notes: [String] = [""]
     
     @Published var iPGN: String = ""
+    
+    var moc : NSManagedObjectContext?
+    //@FetchRequest(entity:Note.entity(), sortDescriptors:[]) var actually_stored_notes: FetchedResults<Note>?
    
+    
+    func save(){
+        print("saving")
+        let new_note = Note(context : self.moc!)
+        new_note.board_state = self.board_history[self.current_index].to_FEN(serialise:true)
+        new_note.note = self.note_text//self.userData.text
+        do{
+            try self.moc!.save()
+        } catch {
+            print("ruh roh",error)
+        }
+        self.stored_notes[self.current_index] = self.note_text
+    }
+    
     func update_text(){
         self.note_text = self.stored_notes[current_index]
     }
     
     func backward(){
+        self.save()
         if (self.current_index != 0){self.current_index = self.current_index - 1}
         else{
             //make a noise
@@ -35,6 +54,7 @@ class Backend: ObservableObject{
     }
     
     func forward(){
+        self.save()
         self.update_text()
         if (self.current_index != self.game_length - 1){self.current_index = self.current_index + 1}
         else{

@@ -63,34 +63,16 @@ struct ContentView: View {
         VStack {
             HStack{
                 VStack{
-                    HStack{
-                        //MoveList(moves:self.backend.moves.dropFirst())
-                        Text("Notes").font(.system(size: 16))
-                        Spacer()
-                        Button(action:{
-                            let new_note = Note(context : self.moc)
-                            new_note.board_state = self.backend.board_history[self.backend.current_index].to_FEN(serialise:true)
-                            new_note.note = self.backend.note_text//self.userData.text
-                            do{
-                                try self.moc.save()
-                            } catch {
-                                print("ruh roh",error)
-                            }
-                            self.backend.stored_notes[self.backend.current_index] = self.backend.note_text
-                            
-                        }){
-                            Text("Save Notes")
-                        }
-                    }
-                    VStack{
-                        EditorTextView(text: self.$backend.note_text)
-                    }
+                    EditorTextView(text: self.$backend.note_text)
+                    .padding()
+                    //Text("Saved")
                 }
                 .frame(width:CGFloat(300),height:CGFloat(600))
                 
                 ZStack{
                     Board(frames: self.$frames)
                         .frame(width: CGFloat(600), height: CGFloat(600))
+                        .focusable(true)
                     
                     ForEach(0..<8){x in
                         ForEach(0..<8){y in
@@ -98,6 +80,7 @@ struct ContentView: View {
                                   released: self.released,
                                   index_x: x,
                                   index_y: y)
+                            .focusable(true)
                         }
                     }
                 }
@@ -105,15 +88,16 @@ struct ContentView: View {
                 
                 VStack {
                     VStack{
-                        Text("Move List")
+                        //Text("Move List")
                         MoveList(moves:Array(self.backend.moves.dropFirst()))
+                        .padding()
                         //Text(self.backend.moves.joined(separator:" "))
                     }
                         .frame(width: 200,height:500,alignment :.topLeading)
-                        .border(Color.blue)
-                    Text("Next Moves")
-                        .frame(width: 200,height:100,alignment :.topLeading)
-                        .border(Color.blue)
+                        //.border(Color.blue)
+                    //Text("Next Moves")
+                    //    .frame(width: 200,height:100,alignment :.topLeading)
+                    //    .border(Color.blue)
                         
                 }
             }

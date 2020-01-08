@@ -17,28 +17,50 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
     var window: NSWindow!
     var toolbar: NSToolbar!
     
+    //https://cocoacasts.com/setting-up-the-core-data-stack-with-nspersistentcontainer
     lazy var persistentContainer: NSPersistentContainer = {
+        /*
+         The persistent container for the application. This implementation
+         creates and returns a container, having loaded the store for the
+         application to it. This property is optional since there are legitimate
+         error conditions that could cause the creation of the store to fail.
+        */
         let container = NSPersistentContainer(name: "Model")
         container.loadPersistentStores { description, error in
             if let error = error {
-                print("not sure - perhaps this is an error?")
+                // Replace this implementation with code to handle the error appropriately.
+                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+
+                /*
+                 Typical reasons for an error here include:
+                 * The parent directory does not exist, cannot be created, or disallows writing.
+                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
+                 * The device is out of space.
+                 * The store could not be migrated to the current model version.
+                 Check the error message to determine what the actual problem was.
+                 */
+                print("ruh roh")
+                //fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         }
         return container
     }()
     
+    
     var backend = Backend()
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        
+
         let context = (NSApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        
+        backend.moc = context
+        
         let contentView = ContentView(backend:backend).environment(\.managedObjectContext,context)
         window = EditorWindow(backend:backend)
         window.center()
         window.setFrameAutosaveName("Main Window")
         window.contentView = NSHostingView(rootView: contentView)
         window.makeKeyAndOrderFront(nil)
-        
         
         toolbar = NSToolbar(identifier: NSToolbar.Identifier("TheToolbarIdentifier"))
         toolbar.allowsUserCustomization = true
@@ -52,29 +74,28 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {
+        //this is never called...
+        //self.backend.save()
         // Insert code here to tear down your application
     }
-
-
     
     //TOOLBAR STUFF
     //https://christiantietze.de/posts/2016/06/segmented-nstoolbaritem/
     
     @objc
     let toolbarItems: [String:NSImage] = [
-        "Import Game" : NSImage(named: NSImage.addTemplateName)!,//AppDelegate.test_f),
-        "Share Game"  : NSImage(named: NSImage.shareTemplateName)!,//AppDelegate.test_f),
-        "Back"        : NSImage(named: NSImage.goBackTemplateName)!,//AppDelegate.test_f),
-        "Forward"     : NSImage(named:NSImage.goForwardTemplateName)!,//AppDelegate.test_f),
-        "Reset"       : NSImage(named:NSImage.refreshTemplateName)!//AppDelegate.button_reset)
+        "Import Game" : NSImage(named: NSImage.addTemplateName)!,
+        "Share Game"  : NSImage(named: NSImage.shareTemplateName)!,
+        "Back"        : NSImage(named: NSImage.goBackTemplateName)!,
+        "Forward"     : NSImage(named:NSImage.goForwardTemplateName)!,
+        "Reset"       : NSImage(named:NSImage.refreshTemplateName)!,
+        "Save"        : NSImage(named:NSImage.bookmarksTemplateName)!
     ]
-
     var toolbarTabsIdentifiers: [NSToolbarItem.Identifier] {
-        return ["Import Game","Share Game","Back", "Forward", "Reset"]
+        return ["Import Game","Share Game","Save","Back", "Forward", "Reset"]
                 .map{ NSToolbarItem.Identifier(rawValue: $0) }
     }
 
-    
     @objc
     func button_reset(){backend.reset()}
     @objc
@@ -96,6 +117,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         iwindow.makeKeyAndOrderFront(nil)
     }
     
+    @objc
+    func button_save(){backend.save()}
+    
     
     func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
 
@@ -113,6 +137,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         if itemIdentifier.rawValue == "Back"{button.action = #selector(button_back)}
         if itemIdentifier.rawValue == "Forward"{button.action = #selector(button_forward)}
         if itemIdentifier.rawValue == "Import Game"{button.action = #selector(button_import)}
+        if itemIdentifier.rawValue == "Save"{button.action = #selector(button_save)}
         
         toolbarItem.view = button
 
@@ -143,7 +168,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
 
 
 
-class EditorWindow: NSWindow {
+class EditorWindow: NSWindow, NSWindowDelegate {
     
     @ObservedObject var backend : Backend
     
@@ -160,6 +185,10 @@ class EditorWindow: NSWindow {
         
     }
 
+    override func mouseDown(with event: NSEvent) {
+        print("clicked?")
+    }
+    
     init(backend: Backend){
         self.backend = backend
         super.init(contentRect: NSRect(x: 0, y: 0, width: 480, height: 400),

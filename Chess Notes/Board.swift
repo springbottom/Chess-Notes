@@ -25,12 +25,13 @@ struct Board: View {
                                             .onAppear{
                                                 self.frames[x*8+y] = geo.frame(in: .global)
                                             }
-                                    }
+                                    }.focusable(true)
                                 )
+                                .focusable(true)
                     }
-                }
+                }.focusable(true)
             }
-        }
+        }.focusable(true)
     }
 }
 

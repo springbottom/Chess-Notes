@@ -38,6 +38,7 @@ struct Piece: View {
                 DragGesture(minimumDistance: CGFloat(10),
                             coordinateSpace: CoordinateSpace.global)
                     .onChanged {
+                        print("changed drag")
                         self.dragAmount = CGSize(width: $0.translation.width, height: -$0.translation.height)
                         self.dragState  = DragState.yes
                     }
@@ -45,8 +46,15 @@ struct Piece: View {
                         self.dragAmount = CGSize.zero
                         self.dragState  = DragState.no
                         self.released!($0.location, self.index_x, self.index_y, self.name)
+                    })
+            .gesture(
+                TapGesture(count:1)
+                    .onEnded {
+                        print("tapped")
                     }
+                
             )
+            .focusable(true)
     }
 }
 
