@@ -61,85 +61,10 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            
-            //this is the top bar of buttons.
-//            HStack{
-//
-//                //BorderedButtonStyle()
-//
-//                Button(action:{
-//                    print("ah")
-//                }){
-//                    VStack{
-//                        Image("iFEN")
-//                            .resizable()
-//                            .frame(width:40,height:40)
-//                        Text("Import FEN")
-//                    }
-//                }.buttonStyle(BorderlessButtonStyle())
-//                 .padding()
-//
-//
-//                Button(action:{
-//                    let controller = DetailWindowController(rootView:
-//                        VStack{
-//                            TextField("Paste PGN here",text:self.$iPGN)
-//                            Button(action:{
-//                                let history = import_PGN(PGN: self.iPGN)
-//                                self.backend.board_history = history.0
-//                                self.backend.moves = history.1
-//                                self.backend.game_length = self.backend.board_history.count
-//                            }){
-//                                Text("Submit PGN")
-//                            }
-//                        })
-//                    controller.window?.title = "Import PGN"
-//                    controller.showWindow(nil)
-//                }){
-//                    VStack{
-//                        Image("iFEN")
-//                            .resizable()
-//                            .frame(width:CGFloat(40),height:CGFloat(40))
-//                        Text("Import PGN")
-//                    }
-//                }.buttonStyle(BorderlessButtonStyle())
-//                .padding()
-//
-//
-//                Button(action:{
-//                    let controller = DetailWindowController(rootView: TextField("",text: .constant(self.backend.board_history[self.backend.current_index].to_FEN()))
-//                    )
-//                    controller.window?.title = "Exported FEN"
-//                    controller.showWindow(nil)
-//                }){
-//                    VStack{
-//                        Image("iFEN").resizable()
-//                        .frame(width:CGFloat(40),height:CGFloat(40))
-//                        Text("Export FEN")
-//                    }
-//                }.buttonStyle(BorderlessButtonStyle())
-//                .padding()
-//
-//                Button(action:{
-//
-//                }){
-//                    VStack{
-//                        Image("iFEN").resizable()
-//                        .frame(width:CGFloat(40),height:CGFloat(40))
-//                        Text("Export PGN")
-//                    }
-//                }.buttonStyle(BorderlessButtonStyle())
-//                .padding(1)
-//                Spacer()
-//            }
-            
-            
-            
             HStack{
-                
-                
                 VStack{
                     HStack{
+                        //MoveList(moves:self.backend.moves.dropFirst())
                         Text("Notes").font(.system(size: 16))
                         Spacer()
                         Button(action:{
@@ -179,46 +104,12 @@ struct ContentView: View {
                 
                 
                 VStack {
-                    Text("Analysis Pane")
-                    HStack{
-                        Button(action: {
-                            self.backend.reset()
-                        }){
-                            Text("Reset Board")
-                        }
-                    }
-                    
-                    VStack{
-                        Text("Debug Region")
-                        Button(action: {
-                            print(self.backend.board_history[self.backend.current_index].to_FEN(serialise:true))
-                        }){
-                            Text("Debug Button")
-                        }
-                        Text(self.backend.note_text)
-                        //Text(self.backend.stored_notes.)
-                    }
-                    
-                    
                     VStack{
                         Text("Move List")
-                        Text(self.backend.moves.joined(separator:" "))
-                        HStack{
-                            Button(action: {
-                                self.backend.backward()
-                            }){
-                                Text("⬅️")
-                                .font(.system(size: 30))
-                            }
-                            Button(action: {
-                                self.backend.forward()
-                            }){
-                                Text("➡️")
-                                .font(.system(size: 30))
-                            }
-                        }
+                        MoveList(moves:Array(self.backend.moves.dropFirst()))
+                        //Text(self.backend.moves.joined(separator:" "))
                     }
-                        .frame(width: 200,height:100,alignment :.topLeading)
+                        .frame(width: 200,height:500,alignment :.topLeading)
                         .border(Color.blue)
                     Text("Next Moves")
                         .frame(width: 200,height:100,alignment :.topLeading)
