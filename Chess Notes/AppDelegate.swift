@@ -27,12 +27,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         return container
     }()
     
-    
+    var backend = Backend()
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-    
-        var backend = Backend()
-        
         
         let context = (NSApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         let contentView = ContentView(backend:backend).environment(\.managedObjectContext,context)
@@ -63,12 +60,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
     //TOOLBAR STUFF
     //https://christiantietze.de/posts/2016/06/segmented-nstoolbaritem/
     
+    @objc
     let toolbarItems: [String:NSImage] = [
-        "Import Game" : NSImage(named: NSImage.addTemplateName)!,
-        "Share Game" : NSImage(named: NSImage.shareTemplateName)!,
-        "Back" : NSImage(named: NSImage.goBackTemplateName)!,
-        "Forward" : NSImage(named:NSImage.goForwardTemplateName)!,
-        "Reset" : NSImage(named:NSImage.refreshTemplateName)!
+        "Import Game" : NSImage(named: NSImage.addTemplateName)!,//AppDelegate.test_f),
+        "Share Game"  : NSImage(named: NSImage.shareTemplateName)!,//AppDelegate.test_f),
+        "Back"        : NSImage(named: NSImage.goBackTemplateName)!,//AppDelegate.test_f),
+        "Forward"     : NSImage(named:NSImage.goForwardTemplateName)!,//AppDelegate.test_f),
+        "Reset"       : NSImage(named:NSImage.refreshTemplateName)!//AppDelegate.button_reset)
     ]
 
     var toolbarTabsIdentifiers: [NSToolbarItem.Identifier] {
@@ -76,8 +74,28 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
                 .map{ NSToolbarItem.Identifier(rawValue: $0) }
     }
 
+    
     @objc
-    func test_f(){print("hi")}
+    func button_reset(){backend.reset()}
+    @objc
+    func button_back(){backend.backward()}
+    @objc
+    func button_forward(){backend.forward()}
+    
+    @objc
+    func button_import(){
+        
+        let iwindow = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 480, height: 400),
+                               styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+                               backing: .buffered, defer: false)
+        let context = (NSApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let importWindow = ImportWindow(backend:backend,window:iwindow).environment(\.managedObjectContext,context)
+        iwindow.center()
+        iwindow.setFrameAutosaveName("Import Window")
+        iwindow.contentView = NSHostingView(rootView: importWindow)
+        iwindow.makeKeyAndOrderFront(nil)
+    }
+    
     
     func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
 
@@ -86,12 +104,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         toolbarItem = NSToolbarItem(itemIdentifier: itemIdentifier)
         toolbarItem.label = itemIdentifier.rawValue//infoDictionary["title"]!
 
-        let iconImage = toolbarItems[itemIdentifier.rawValue]
+        let iconImage = toolbarItems[itemIdentifier.rawValue]!
         let button = NSButton(frame: NSRect(x: 0, y: 0, width: 40, height: 40))
         button.title = ""
         button.image = iconImage//NSImage(named: NSImage.addTemplateName)
         button.bezelStyle = .texturedRounded
-        button.action = #selector(AppDelegate.test_f)
+        if itemIdentifier.rawValue == "Reset"{button.action = #selector(button_reset)}
+        if itemIdentifier.rawValue == "Back"{button.action = #selector(button_back)}
+        if itemIdentifier.rawValue == "Forward"{button.action = #selector(button_forward)}
+        if itemIdentifier.rawValue == "Import Game"{button.action = #selector(button_import)}
+        
         toolbarItem.view = button
 
         return toolbarItem
@@ -124,7 +146,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
 class EditorWindow: NSWindow {
     
     @ObservedObject var backend : Backend
-    
     
     override func keyDown(with event : NSEvent) {
         super.keyDown(with: event)

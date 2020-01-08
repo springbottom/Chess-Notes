@@ -18,6 +18,8 @@ class Backend: ObservableObject{
     @Published var note_text: String = "Hello"
     
     @Published var stored_notes: [String] = [""]
+    
+    @Published var iPGN: String = ""
    
     func update_text(){
         self.note_text = self.stored_notes[current_index]

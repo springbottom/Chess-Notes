@@ -19,6 +19,7 @@
 		CD752A5B23C13037006D34CD /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD752A5A23C13037006D34CD /* Board.swift */; };
 		CD752A5F23C34FFF006D34CD /* DetailWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD752A5E23C34FFF006D34CD /* DetailWindowController.swift */; };
 		CD752A6123C54BB9006D34CD /* Backend.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD752A6023C54BB9006D34CD /* Backend.swift */; };
+		CD752A6323C5A86D006D34CD /* ImportWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD752A6223C5A86D006D34CD /* ImportWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,7 @@
 		CD752A5A23C13037006D34CD /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
 		CD752A5E23C34FFF006D34CD /* DetailWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailWindowController.swift; sourceTree = "<group>"; };
 		CD752A6023C54BB9006D34CD /* Backend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backend.swift; sourceTree = "<group>"; };
+		CD752A6223C5A86D006D34CD /* ImportWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +75,7 @@
 				CD055F7823BD234900B36BA2 /* MultilineTextView.swift */,
 				CD055F7A23BD239400B36BA2 /* Piece.swift */,
 				CD055F6523BD231000B36BA2 /* AppDelegate.swift */,
+				CD752A6223C5A86D006D34CD /* ImportWindow.swift */,
 				CD055F6723BD231000B36BA2 /* ContentView.swift */,
 				CD752A5E23C34FFF006D34CD /* DetailWindowController.swift */,
 				CD752A5A23C13037006D34CD /* Board.swift */,
@@ -166,6 +169,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD752A6323C5A86D006D34CD /* ImportWindow.swift in Sources */,
 				CD055F6823BD231000B36BA2 /* ContentView.swift in Sources */,
 				CD055F7D23BD243500B36BA2 /* Chess_backend.swift in Sources */,
 				CD752A6123C54BB9006D34CD /* Backend.swift in Sources */,
