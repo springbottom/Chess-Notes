@@ -27,6 +27,10 @@ struct Board: View {
                                             }
                                     }.focusable(true)
                                 )
+                        //.overlay(
+                        //    List{
+                        //        Rectangle().foregroundColor(Color.clear)
+                        //})
                                 .focusable(true)
                     }
                 }.focusable(true)

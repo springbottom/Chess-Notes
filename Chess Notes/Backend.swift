@@ -27,7 +27,7 @@ class Backend: ObservableObject{
    
     
     func save(){
-        print("saving")
+        //print("saving")
         let new_note = Note(context : self.moc!)
         new_note.board_state = self.board_history[self.current_index].to_FEN(serialise:true)
         new_note.note = self.note_text//self.userData.text

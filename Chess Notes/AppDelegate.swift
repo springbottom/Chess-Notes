@@ -157,7 +157,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
     }
 
     func toolbarWillAddItem(_ notification: Notification) {
-        print("toolbarWillAddItem", (notification.userInfo?["item"] as? NSToolbarItem)?.itemIdentifier ?? "")
+        //print("toolbarWillAddItem", (notification.userInfo?["item"] as? NSToolbarItem)?.itemIdentifier ?? "")
     }
 
     func toolbarDidRemoveItem(_ notification: Notification) {
@@ -186,7 +186,8 @@ class EditorWindow: NSWindow, NSWindowDelegate {
     }
 
     override func mouseDown(with event: NSEvent) {
-        print("clicked?")
+        self.makeFirstResponder(self)
+        print("clicked, in EditorWindow")
     }
     
     init(backend: Backend){

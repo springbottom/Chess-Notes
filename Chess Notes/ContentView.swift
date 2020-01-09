@@ -63,9 +63,8 @@ struct ContentView: View {
         VStack {
             HStack{
                 VStack{
-                    EditorTextView(text: self.$backend.note_text)
+                    EditorTextView(text: self.$backend.note_text)//, backend: self.$backend)
                     .padding()
-                    //Text("Saved")
                 }
                 .frame(width:CGFloat(300),height:CGFloat(600))
                 
@@ -76,11 +75,11 @@ struct ContentView: View {
                     
                     ForEach(0..<8){x in
                         ForEach(0..<8){y in
-                            Piece(name:self.backend.board_history[self.backend.current_index].board[x][y],
+                            Piece(backend: self.backend,
+                                  name:self.backend.board_history[self.backend.current_index].board[x][y],
                                   released: self.released,
                                   index_x: x,
                                   index_y: y)
-                            .focusable(true)
                         }
                     }
                 }
@@ -88,16 +87,16 @@ struct ContentView: View {
                 
                 VStack {
                     VStack{
-                        //Text("Move List")
                         MoveList(moves:Array(self.backend.moves.dropFirst()))
                         .padding()
-                        //Text(self.backend.moves.joined(separator:" "))
+                        //Text(String(NSApplication.sharedApplication.keyWindow!.contentViewController!))
                     }
                         .frame(width: 200,height:500,alignment :.topLeading)
-                        //.border(Color.blue)
-                    //Text("Next Moves")
-                    //    .frame(width: 200,height:100,alignment :.topLeading)
-                    //    .border(Color.blue)
+                    Button(action:{
+                        print(NSApplication.shared.keyWindow!.firstResponder!)
+                    }){
+                        Text("Debug")
+                    }
                         
                 }
             }

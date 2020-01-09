@@ -13,6 +13,7 @@ import Combine
 //https://gist.github.com/unnamedd/6e8c3fbc806b8deb60fa65d6b9affab0
 struct EditorTextView: NSViewRepresentable {
     @Binding var text: String
+    //@Binding var backend: Backend
     
     var onEditingChanged: () -> Void = {print("onEditingChanged")}
     var onCommit: () -> Void = {print("onCommit")}
@@ -22,7 +23,7 @@ struct EditorTextView: NSViewRepresentable {
     }
     
     func makeNSView(context: Context) -> CustomTextView {
-        let textView = CustomTextView(text: self.text)
+        let textView = CustomTextView(text: self.text)//, backend: self.$backend)
         textView.delegate = context.coordinator
         
         return textView
@@ -74,6 +75,8 @@ extension EditorTextView {
 }
 
 final class CustomTextView: NSView {
+    //@Binding var backend : Backend
+    
     private var isEditable: Bool
     private var font: NSFont
     
@@ -144,6 +147,7 @@ final class CustomTextView: NSView {
     
     // MARK: - Init
     init(text: String, isEditable: Bool = true, font: NSFont = NSFont.systemFont(ofSize: 16, weight: .regular)) {
+        //self._backend = backend
         self.font       = font
         self.isEditable = isEditable
         self.text       = text
@@ -164,8 +168,10 @@ final class CustomTextView: NSView {
         setupTextView()
     }
     
-    override func mouseDown(with event: NSEvent) {
-        print("clicked?")
+    override public func mouseDown(with event: NSEvent) {
+        //self.backend.save()
+        //self.resignFirstResponder()
+        print("clicked??")
     }
     
     func setupScrollViewConstraints() {

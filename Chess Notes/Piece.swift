@@ -16,8 +16,11 @@ enum DragState {
 
 struct Piece: View {
     
+    var backend : Backend?
+    
     @State var dragAmount = CGSize.zero //this is a vector as far as I can tell
     @State var dragState = DragState.no //Not being dragged?
+    
     
     var name: String //holds the name of the piece... I don't really know
     var released: ((CGPoint, Int, Int, String) -> Void)? //A dummy lambda function that handles what happens when we release?
@@ -38,7 +41,7 @@ struct Piece: View {
                 DragGesture(minimumDistance: CGFloat(10),
                             coordinateSpace: CoordinateSpace.global)
                     .onChanged {
-                        print("changed drag")
+                        //print("changed drag")
                         self.dragAmount = CGSize(width: $0.translation.width, height: -$0.translation.height)
                         self.dragState  = DragState.yes
                     }
@@ -50,19 +53,23 @@ struct Piece: View {
             .gesture(
                 TapGesture(count:1)
                     .onEnded {
+                        //NSApplication.shared.keyWindow!.firstResponder!.resignFirstResponder()
+                        NSApplication.shared.keyWindow!.makeFirstResponder(NSApplication.shared.keyWindow!)
+                        //self.firstResponder = true
+                        self.backend!.save()
                         print("tapped")
                     }
-                
+
             )
             .focusable(true)
     }
 }
 
-struct Piece_Previews: PreviewProvider {
-    static var previews: some View {
-        Piece(name:"WP",
-              index_x:0,
-              index_y:0)
-    }
-}
+//struct Piece_Previews: PreviewProvider {
+//    static var previews: some View {
+//        Piece(name:"WP",
+//              index_x:0,
+//              index_y:0)
+//    }
+//}
 
